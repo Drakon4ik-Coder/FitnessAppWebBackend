@@ -1,5 +1,6 @@
 # models.py
 from django.db import models
+from django.contrib.auth.models import User
 
 class Food(models.Model):
     name = models.CharField(max_length=100)
@@ -11,8 +12,8 @@ class Food(models.Model):
     def __str__(self):
         return self.name
 
-
 class EatenFood(models.Model):
-    food = models.ForeignKey(Food, on_delete=models.CASCADE, related_name='eaten_foods')
-    weight = models.FloatField(default=100)  # Portion size in grams
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    food = models.ForeignKey(Food, on_delete=models.CASCADE)
+    weight = models.FloatField()
     timestamp = models.DateTimeField(auto_now_add=True)
