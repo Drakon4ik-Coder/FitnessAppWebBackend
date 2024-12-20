@@ -112,15 +112,15 @@ class Action(models.Model):
         return available_ingredients
 
     def get_eaten_food(self):
-        eaten_foods = Action.objects.filter(user=self.user, action_type='EAT').values('item', 'quantity')
+        eaten_foods = Action.objects.filter(user=self.user, action_type='EAT').values('action_id','item', 'quantity', 'timestamp')
 
-        eaten_food = {}
+        eaten_food = []
         for eaten in eaten_foods:
-            item_id = eaten['item']
-            quantity = eaten['quantity']
-            if item_id in eaten_food:
-                eaten_food[item_id].append(quantity)
-            else:
-                eaten_food[item_id] = [quantity]
+            eaten_food.append({
+                'action_id': eaten['action_id'],
+                'item_id': eaten['item'],
+                'quantity': eaten['quantity'],
+                'timestamp': eaten['timestamp']
+            })
 
         return eaten_food

@@ -138,5 +138,20 @@ class MealRecommendationsView(APIView):
             meal_recipes__ingredient__item_id__in=available_ingredient_ids
         ).distinct()
 
-        serializer = ItemSerializer(recommended_meals, many=True)
+        valid_meals = []
+        for meal in recommended_meals:
+            recipes = Recipe.objects.filter(meal=meal)
+            fail = False
+            for recipe in recipes:
+                if recipe.ingredient.item_id not in available_ingredients.keys():
+                    fail = True
+            if fail:
+                continue
+            if all(available_ingredients[recipe.ingredient.item_id] >= recipe.quantity for recipe in recipes):
+                valid_meals.append(meal)
+
+        if not valid_meals:
+            return Response({"detail": "No valid meal recommendations found."}, status=status.HTTP_204_NO_CONTENT)
+
+        serializer = ItemSerializer(valid_meals, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
