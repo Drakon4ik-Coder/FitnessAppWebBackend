@@ -1,6 +1,8 @@
 # serializers.py
 from rest_framework import serializers
-from .models import Food, EatenFood
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+from .models import Item, Recipe, Action, UserSettings
 from django.contrib.auth.models import User
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -18,21 +20,39 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         )
         return user
 
-
-class FoodSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Food
+        model = User
+        fields = ['id', 'username', 'email']
+
+
+    def get_nutrition(obj):
+        return obj.get_nutrition()
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['username'] = user.username
+        return token
+
+class UserSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserSettings
+        fields = ['goal_calories', 'goal_protein', 'goal_carbs', 'goal_fats']
+
+class ItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Item
         fields = '__all__'
 
 
-class EatenFoodSerializer(serializers.ModelSerializer):
-    food = serializers.PrimaryKeyRelatedField(queryset=Food.objects.all())
-    food_name = serializers.CharField(source='food.name', read_only=True)
-    calories = serializers.SerializerMethodField()
-
-    def get_calories(self, obj):
-        return (obj.food.calories * obj.weight) / 100
-
+class RecipeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = EatenFood
-        fields = ['id', 'food', 'weight', 'timestamp', 'food_name', 'calories']
+        model = Recipe
+        fields = '__all__'
+
+class ActionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Action
+        fields = ['item', 'ingredient', 'action_type', 'quantity']
